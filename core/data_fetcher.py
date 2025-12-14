@@ -20,66 +20,66 @@ logger = logging.getLogger(__name__)
 # 1. Stock Data Fetching (A-shares)
 # ============================================================================
 
+
 def fetch_stock_daily(
-    symbol: str,
-    start_date: str,
-    end_date: str,
-    adjust: str = "qfq"
+    symbol: str, start_date: str, end_date: str, adjust: str = "qfq"
 ) -> Optional[pd.DataFrame]:
     """
     Fetch A-share daily historical data using AKShare.
-    
+
     Args:
         symbol: Stock code (e.g., "600519" for 贵州茅台)
         start_date: Start date in format "YYYYMMDD"
         end_date: End date in format "YYYYMMDD"
         adjust: Adjustment type - "" (no adjust), "qfq" (forward), "hfq" (backward)
-    
+
     Returns:
         DataFrame with columns: date, open, close, high, low, volume, amount
         Returns None if fetch fails
-    
+
     Example:
         >>> df = fetch_stock_daily("600519", "20231001", "20231101", adjust="qfq")
         >>> print(df.head())
     """
     try:
         logger.info(f"Fetching stock data: {symbol} from {start_date} to {end_date}")
-        
+
         df = ak.stock_zh_a_hist(
             symbol=symbol,
             period="daily",
             start_date=start_date,
             end_date=end_date,
-            adjust=adjust
+            adjust=adjust,
         )
-        
+
         if df.empty:
             logger.warning(f"Empty dataframe returned for symbol {symbol}")
             return None
-        
+
         # Standardize column names to English
-        df = df.rename(columns={
-            '日期': 'date',
-            '开盘': 'open',
-            '收盘': 'close',
-            '最高': 'high',
-            '最低': 'low',
-            '成交量': 'volume',
-            '成交额': 'amount',
-            '振幅': 'amplitude',
-            '涨跌幅': 'change_pct',
-            '涨跌额': 'change_amount',
-            '换手率': 'turnover'
-        })
-        
+        df = df.rename(
+            columns={
+                "日期": "date",
+                "开盘": "open",
+                "收盘": "close",
+                "最高": "high",
+                "最低": "low",
+                "成交量": "volume",
+                "成交额": "amount",
+                "振幅": "amplitude",
+                "涨跌幅": "change_pct",
+                "涨跌额": "change_amount",
+                "换手率": "turnover",
+            }
+        )
+
         # Convert date to datetime
-        df['date'] = pd.to_datetime(df['date'])
-        df = df.set_index('date')
-        
+        df["date"] = pd.to_datetime(df["date"])
+        df = df.set_index("date")
+
         logger.info(f"Successfully fetched {len(df)} records")
         return df
-        
+
     except Exception as e:
         logger.error(f"Error fetching stock data for {symbol}: {e}")
         return None
@@ -89,66 +89,66 @@ def fetch_stock_daily(
 # 2. ETF Data Fetching
 # ============================================================================
 
+
 def fetch_etf_daily(
-    symbol: str,
-    start_date: str,
-    end_date: str,
-    adjust: str = "qfq"
+    symbol: str, start_date: str, end_date: str, adjust: str = "qfq"
 ) -> Optional[pd.DataFrame]:
     """
     Fetch ETF daily historical data using AKShare (East Money source).
-    
+
     Args:
         symbol: ETF code (e.g., "510300" for 沪深300ETF)
         start_date: Start date in format "YYYYMMDD"
         end_date: End date in format "YYYYMMDD"
         adjust: Adjustment type - "" (no adjust), "qfq" (forward), "hfq" (backward)
-    
+
     Returns:
         DataFrame with columns: date, open, close, high, low, volume, amount
         Returns None if fetch fails
-    
+
     Example:
         >>> df = fetch_etf_daily("510300", "20231001", "20231101")
         >>> print(df.head())
     """
     try:
         logger.info(f"Fetching ETF data: {symbol} from {start_date} to {end_date}")
-        
+
         df = ak.fund_etf_hist_em(
             symbol=symbol,
             period="daily",
             start_date=start_date,
             end_date=end_date,
-            adjust=adjust
+            adjust=adjust,
         )
-        
+
         if df.empty:
             logger.warning(f"Empty dataframe returned for ETF {symbol}")
             return None
-        
+
         # Standardize column names to English
-        df = df.rename(columns={
-            '日期': 'date',
-            '开盘': 'open',
-            '收盘': 'close',
-            '最高': 'high',
-            '最低': 'low',
-            '成交量': 'volume',
-            '成交额': 'amount',
-            '振幅': 'amplitude',
-            '涨跌幅': 'change_pct',
-            '涨跌额': 'change_amount',
-            '换手率': 'turnover'
-        })
-        
+        df = df.rename(
+            columns={
+                "日期": "date",
+                "开盘": "open",
+                "收盘": "close",
+                "最高": "high",
+                "最低": "low",
+                "成交量": "volume",
+                "成交额": "amount",
+                "振幅": "amplitude",
+                "涨跌幅": "change_pct",
+                "涨跌额": "change_amount",
+                "换手率": "turnover",
+            }
+        )
+
         # Convert date to datetime
-        df['date'] = pd.to_datetime(df['date'])
-        df = df.set_index('date')
-        
+        df["date"] = pd.to_datetime(df["date"])
+        df = df.set_index("date")
+
         logger.info(f"Successfully fetched {len(df)} records")
         return df
-        
+
     except Exception as e:
         logger.error(f"Error fetching ETF data for {symbol}: {e}")
         return None
@@ -158,14 +158,15 @@ def fetch_etf_daily(
 # 3. ETF Real-time Spot Data
 # ============================================================================
 
+
 def fetch_etf_realtime() -> Optional[pd.DataFrame]:
     """
     Fetch real-time spot data for all ETFs in the market.
-    
+
     Returns:
         DataFrame with ETF real-time quotes
         Returns None if fetch fails
-    
+
     Example:
         >>> df_realtime = fetch_etf_realtime()
         >>> print(df_realtime[['代码', '名称', '最新价', '涨跌幅']].head())
@@ -173,14 +174,14 @@ def fetch_etf_realtime() -> Optional[pd.DataFrame]:
     try:
         logger.info("Fetching real-time ETF spot data")
         df = ak.fund_etf_spot_em()
-        
+
         if df.empty:
             logger.warning("Empty dataframe returned for ETF real-time data")
             return None
-        
+
         logger.info(f"Successfully fetched {len(df)} ETF records")
         return df
-        
+
     except Exception as e:
         logger.error(f"Error fetching ETF real-time data: {e}")
         return None
@@ -190,26 +191,27 @@ def fetch_etf_realtime() -> Optional[pd.DataFrame]:
 # 4. Unified Data Fetcher (Auto-detect type)
 # ============================================================================
 
+
 def fetch_data(
     symbol: str,
     start_date: str,
     end_date: str,
     data_type: str = "auto",
-    adjust: str = "qfq"
+    adjust: str = "qfq",
 ) -> Optional[pd.DataFrame]:
     """
     Unified data fetcher that automatically detects data type.
-    
+
     Args:
         symbol: Stock/ETF code
         start_date: Start date "YYYYMMDD"
         end_date: End date "YYYYMMDD"
         data_type: "stock", "etf", or "auto" (auto-detect based on code)
         adjust: Adjustment type
-    
+
     Returns:
         Standardized DataFrame or None if fetch fails
-    
+
     Example:
         >>> df = fetch_data("600519", "20231001", "20231101")  # Stock
         >>> df = fetch_data("510300", "20231001", "20231101")  # ETF
@@ -221,7 +223,7 @@ def fetch_data(
             data_type = "etf"
         else:
             data_type = "stock"
-    
+
     if data_type == "stock":
         return fetch_stock_daily(symbol, start_date, end_date, adjust)
     elif data_type == "etf":
@@ -235,27 +237,28 @@ def fetch_data(
 # 5. Utility Functions
 # ============================================================================
 
+
 def get_trading_days(start_date: str, end_date: str) -> list:
     """
     Get all trading days between start_date and end_date.
-    
+
     Args:
         start_date: Start date "YYYYMMDD"
         end_date: End date "YYYYMMDD"
-    
+
     Returns:
         List of trading days
     """
     try:
         df = ak.tool_trade_date_hist_sina()
-        df['trade_date'] = pd.to_datetime(df['trade_date'])
-        
+        df["trade_date"] = pd.to_datetime(df["trade_date"])
+
         start = pd.to_datetime(start_date)
         end = pd.to_datetime(end_date)
-        
-        trading_days = df[(df['trade_date'] >= start) & (df['trade_date'] <= end)]
-        return trading_days['trade_date'].tolist()
-        
+
+        trading_days = df[(df["trade_date"] >= start) & (df["trade_date"] <= end)]
+        return trading_days["trade_date"].tolist()
+
     except Exception as e:
         logger.error(f"Error fetching trading days: {e}")
         return []
@@ -264,19 +267,19 @@ def get_trading_days(start_date: str, end_date: str) -> list:
 if __name__ == "__main__":
     # Test code
     print("Testing data fetcher...")
-    
+
     # Test stock data
     df_stock = fetch_stock_daily("600519", "20231001", "20231101")
     if df_stock is not None:
         print("\n✅ Stock data fetched successfully:")
         print(df_stock.head())
-    
+
     # Test ETF data
     df_etf = fetch_etf_daily("510300", "20231001", "20231101")
     if df_etf is not None:
         print("\n✅ ETF data fetched successfully:")
         print(df_etf.head())
-    
+
     # Test unified fetcher
     df_auto = fetch_data("510300", "20231001", "20231101", data_type="auto")
     if df_auto is not None:

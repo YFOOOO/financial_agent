@@ -13,16 +13,22 @@ from html import escape
 import re
 import markdown as md_lib
 
-def print_html(content: Any, title: Optional[str] = None, is_image: bool = False, is_markdown: bool = False):
+
+def print_html(
+    content: Any,
+    title: Optional[str] = None,
+    is_image: bool = False,
+    is_markdown: bool = False,
+):
     """
     Renders content in a beautiful card-style UI within Jupyter Notebooks.
-    
+
     Features:
     - Multimodal rendering (Images, DataFrames, Code, Markdown)
     - Scoped CSS (prevents global style pollution)
     - Visual hierarchy with titles
     - Auto-detection of Markdown content
-    
+
     Args:
         content: The content to display.
             - str + is_image=True: Path to image file (embedded as Base64)
@@ -31,45 +37,46 @@ def print_html(content: Any, title: Optional[str] = None, is_image: bool = False
             - Other: Rendered as code block (<pre><code>)
         title: Optional title for the card.
         is_image: Set to True if content is an image file path.
-        is_markdown: Set to True to render content as Markdown. 
+        is_markdown: Set to True to render content as Markdown.
                      If None, auto-detects Markdown patterns.
-    
+
     Examples:
         >>> print_html(code, title="📝 Generated Code")
         >>> print_html("chart.png", title="📊 Visualization", is_image=True)
         >>> print_html(df.head(), title="📋 Data Preview")
         >>> print_html(ai_response, title="🤖 AI Analysis", is_markdown=True)
     """
+
     def image_to_base64(image_path: str) -> str:
         with open(image_path, "rb") as img_file:
             return base64.b64encode(img_file.read()).decode("utf-8")
-    
+
     def _is_likely_markdown(text: str) -> bool:
         """Auto-detect if text contains Markdown syntax."""
         if not isinstance(text, str):
             return False
-        
+
         markdown_patterns = [
-            r'^#{1,6}\s+',           # Headers
-            r'\*\*[^*]+\*\*',        # Bold
-            r'\*[^*]+\*',            # Italic
-            r'^[-*+]\s+',            # Lists
-            r'^\d+\.\s+',            # Numbered lists
-            r'\[.+\]\(.+\)',         # Links
-            r'```',                  # Code blocks
-            r'`[^`]+`',              # Inline code
-            r'^>\s+',                # Blockquotes
+            r"^#{1,6}\s+",  # Headers
+            r"\*\*[^*]+\*\*",  # Bold
+            r"\*[^*]+\*",  # Italic
+            r"^[-*+]\s+",  # Lists
+            r"^\d+\.\s+",  # Numbered lists
+            r"\[.+\]\(.+\)",  # Links
+            r"```",  # Code blocks
+            r"`[^`]+`",  # Inline code
+            r"^>\s+",  # Blockquotes
         ]
-        
+
         for pattern in markdown_patterns:
             if re.search(pattern, text, re.MULTILINE):
                 return True
         return False
-    
+
     def _markdown_to_html(md_text: str) -> str:
         """
         Convert Markdown to HTML using standard markdown library.
-        
+
         This ensures proper handling of:
         - Nested lists (ordered and unordered)
         - Indented sublists (normalize 2-3 spaces to 4 spaces)
@@ -78,36 +85,36 @@ def print_html(content: Any, title: Optional[str] = None, is_image: bool = False
         """
         # Pre-process: Normalize indentation for nested lists
         # LLM often outputs 2-3 spaces, but Markdown requires 4 spaces
-        lines = md_text.split('\n')
+        lines = md_text.split("\n")
         normalized_lines = []
-        
+
         for line in lines:
             # Detect lines starting with 2-3 spaces followed by list marker
-            match = re.match(r'^( {2,3})([-*+]|\d+\.)\s', line)
+            match = re.match(r"^( {2,3})([-*+]|\d+\.)\s", line)
             if match:
                 # Replace 2-3 spaces with 4 spaces
-                indent_replacement = '    '
-                normalized_line = indent_replacement + line[len(match.group(1)):]
+                indent_replacement = "    "
+                normalized_line = indent_replacement + line[len(match.group(1)) :]
                 normalized_lines.append(normalized_line)
             else:
                 normalized_lines.append(line)
-        
-        normalized_text = '\n'.join(normalized_lines)
-        
+
+        normalized_text = "\n".join(normalized_lines)
+
         # Use markdown library with extra extensions for better support
         html = md_lib.markdown(
             normalized_text,
             extensions=[
-                'nl2br',      # Convert newlines to <br>
-                'sane_lists'  # Better list handling
-            ]
+                "nl2br",  # Convert newlines to <br>
+                "sane_lists",  # Better list handling
+            ],
         )
         return html
-    
+
     # Auto-detect markdown if not explicitly specified
     if is_markdown is False and isinstance(content, str) and not is_image:
         is_markdown = _is_likely_markdown(content)
-    
+
     # Render content based on type
     if is_image and isinstance(content, str):
         try:
@@ -118,14 +125,18 @@ def print_html(content: Any, title: Optional[str] = None, is_image: bool = False
     elif is_markdown and isinstance(content, str):
         rendered = f'<div class="markdown-content">{_markdown_to_html(content)}</div>'
     elif isinstance(content, pd.DataFrame):
-        rendered = content.to_html(classes="pretty-table", index=False, border=0, escape=False)
+        rendered = content.to_html(
+            classes="pretty-table", index=False, border=0, escape=False
+        )
     elif isinstance(content, pd.Series):
-        rendered = content.to_frame().to_html(classes="pretty-table", border=0, escape=False)
+        rendered = content.to_frame().to_html(
+            classes="pretty-table", border=0, escape=False
+        )
     elif isinstance(content, str):
         rendered = f"<pre><code>{escape(content)}</code></pre>"
     else:
         rendered = f"<pre><code>{escape(str(content))}</code></pre>"
-    
+
     # Scoped CSS
     css = """
     <style>
@@ -260,7 +271,7 @@ def print_html(content: Any, title: Optional[str] = None, is_image: bool = False
     }
     </style>
     """
-    
+
     title_html = f'<div class="pretty-title">{title}</div>' if title else ""
     card = f'<div class="pretty-card">{title_html}{rendered}</div>'
     display(HTML(css + card))

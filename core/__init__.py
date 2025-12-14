@@ -4,12 +4,12 @@ from .llm_client import (
     image_anthropic_call,
     image_openai_call,
     check_api_keys,
-    encode_image_b64
+    encode_image_b64,
 )
 from .ui_utils import print_html
 from .safe_parsing import ensure_execute_python_tags, extract_code_from_tags
 from .result_display import (
     display_analysis_result,
     display_execution_summary,
-    display_batch_results
+    display_batch_results,
 )

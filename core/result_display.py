@@ -13,11 +13,11 @@ from .ui_utils import print_html
 def display_analysis_result(result: Dict[str, Any], show_details: bool = True) -> None:
     """
     Display the complete analysis result with beautiful formatting.
-    
+
     Args:
         result: Analysis result dictionary from run_agent or analyze_stock
         show_details: Whether to show technical indicators and trading signals
-    
+
     Example:
         >>> result = analyze_stock("600519", days=45)
         >>> display_analysis_result(result)
@@ -25,37 +25,37 @@ def display_analysis_result(result: Dict[str, Any], show_details: bool = True) -
     if not result.get("success"):
         print(f"\n❌ 分析失败: {result.get('error', '未知错误')}")
         return
-    
-    print("\n" + "="*60)
+
+    print("\n" + "=" * 60)
     print("📊 分析结果展示")
-    print("="*60)
-    
+    print("=" * 60)
+
     # 1. Display AI analysis report with Markdown rendering
     print_html(result["final_answer"], title="🤖 AI 分析报告", is_markdown=True)
-    
+
     if not show_details:
         return
-    
+
     # 2. Find and display chart and technical indicators
     for step in result.get("history", []):
         if step.get("action") == "analyze_and_plot":
             tool_result = step.get("result", {})
-            
+
             if tool_result.get("status") == "success" and tool_result.get("chart_path"):
                 chart_path = tool_result["chart_path"]
-                
+
                 # Display chart
                 print("\n📈 技术分析图表:")
                 display(Image(filename=chart_path))
-                
+
                 # Display technical indicators summary
                 if tool_result.get("indicators_summary"):
                     _display_indicators_table(tool_result["indicators_summary"])
-                
+
                 # Display trading signals
                 if tool_result.get("trading_signals"):
                     _display_trading_signals(tool_result["trading_signals"])
-                
+
                 print("\n✅ 分析完成！")
                 break
 
@@ -63,7 +63,7 @@ def display_analysis_result(result: Dict[str, Any], show_details: bool = True) -
 def _display_indicators_table(indicators: Dict[str, Any]) -> None:
     """
     Display technical indicators in a beautiful gradient table.
-    
+
     Args:
         indicators: Dictionary of indicator names and values
     """
@@ -81,37 +81,37 @@ def _display_indicators_table(indicators: Dict[str, Any]) -> None:
             </thead>
             <tbody>
     """
-    
+
     for key, value in indicators.items():
         # Filter out None and NaN values
         if value is not None and not (isinstance(value, float) and value != value):
             display_name = key.replace("_", " ").upper()
-            
+
             if isinstance(value, (int, float)):
                 display_value = f"{value:.2f}"
             else:
                 display_value = str(value)
-            
+
             html_table += f"""
                 <tr style='border-bottom: 1px solid rgba(255,255,255,0.1);'>
                     <td style='padding: 8px;'>{display_name}</td>
                     <td style='padding: 8px; text-align: right; font-weight: bold;'>{display_value}</td>
                 </tr>
             """
-    
+
     html_table += """
             </tbody>
         </table>
     </div>
     """
-    
+
     display(HTML(html_table))
 
 
 def _display_trading_signals(signals: Dict[str, str]) -> None:
     """
     Display trading signals in a beautiful grid layout.
-    
+
     Args:
         signals: Dictionary of signal types and values
     """
@@ -121,14 +121,9 @@ def _display_trading_signals(signals: Dict[str, str]) -> None:
         <h3 style='margin-top: 0;'>🎯 交易信号</h3>
         <div style='display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;'>
     """
-    
-    signal_icons = {
-        "买入": "🟢",
-        "卖出": "🔴",
-        "持有": "🟡",
-        "观望": "⚪"
-    }
-    
+
+    signal_icons = {"买入": "🟢", "卖出": "🔴", "持有": "🟡", "观望": "⚪"}
+
     for signal_type, signal_value in signals.items():
         icon = signal_icons.get(signal_value, "📌")
         signal_html += f"""
@@ -139,43 +134,43 @@ def _display_trading_signals(signals: Dict[str, str]) -> None:
                 <div style='font-size: 1.2em; font-weight: bold; margin-top: 5px;'>{signal_value}</div>
             </div>
         """
-    
+
     signal_html += """
         </div>
     </div>
     """
-    
+
     display(HTML(signal_html))
 
 
 def display_execution_summary(result: Dict[str, Any]) -> None:
     """
     Display a brief summary of the agent execution.
-    
+
     Args:
         result: Analysis result dictionary from run_agent or analyze_stock
-    
+
     Example:
         >>> result = analyze_stock("600519", days=45)
         >>> display_execution_summary(result)
     """
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("📝 执行摘要")
-    print("="*60)
-    
+    print("=" * 60)
+
     if not result.get("success"):
         print(f"❌ 状态: 失败")
         print(f"❌ 错误: {result.get('error', '未知错误')}")
         return
-    
+
     print(f"✅ 状态: 成功")
-    
+
     history = result.get("history", [])
     tool_calls = [step for step in history if step.get("type") == "tool_call"]
-    
+
     print(f"🔄 总迭代次数: {len(history)}")
     print(f"🔧 工具调用次数: {len(tool_calls)}")
-    
+
     print("\n工具调用详情:")
     for i, step in enumerate(tool_calls, 1):
         action = step.get("action")
@@ -184,39 +179,40 @@ def display_execution_summary(result: Dict[str, Any]) -> None:
         print(f"  {i}. {action}: {status_icon} {status}")
 
 
-def display_batch_results(results: Dict[str, Dict[str, Any]], 
-                          show_charts: bool = False) -> None:
+def display_batch_results(
+    results: Dict[str, Dict[str, Any]], show_charts: bool = False
+) -> None:
     """
     Display results from batch analysis of multiple stocks.
-    
+
     Args:
         results: Dictionary mapping stock symbols to analysis results
         show_charts: Whether to display charts (can be overwhelming for many stocks)
-    
+
     Example:
         >>> stocks = ["600519", "000858", "600036"]
         >>> results = {s: analyze_stock(s, verbose=False) for s in stocks}
         >>> display_batch_results(results)
     """
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("📊 批量分析结果")
-    print("="*60)
-    
+    print("=" * 60)
+
     successful = sum(1 for r in results.values() if r.get("success"))
     total = len(results)
-    
+
     print(f"\n✅ 成功: {successful}/{total}")
     print(f"❌ 失败: {total - successful}/{total}")
-    
+
     print("\n详细结果:")
-    
+
     for symbol, result in results.items():
         print(f"\n{'─'*60}")
         print(f"股票代码: {symbol}")
-        
+
         if result.get("success"):
             print(f"✅ 状态: 成功")
-            
+
             if show_charts:
                 display_analysis_result(result, show_details=True)
             else:
