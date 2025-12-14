@@ -6,7 +6,7 @@ Encapsulates all visualization logic for agent execution results.
 """
 
 from typing import Dict, Any
-from IPython.display import HTML, Image, display
+from IPython.display import HTML, display
 from .ui_utils import print_html
 
 
@@ -44,9 +44,8 @@ def display_analysis_result(result: Dict[str, Any], show_details: bool = True) -
             if tool_result.get("status") == "success" and tool_result.get("chart_path"):
                 chart_path = tool_result["chart_path"]
 
-                # Display chart
-                print("\n📈 技术分析图表:")
-                display(Image(filename=chart_path))
+                # Display chart using optimized print_html (with beautiful card-style UI)
+                print_html(chart_path, title="📈 技术分析图表", is_image=True)
 
                 # Display technical indicators summary
                 if tool_result.get("indicators_summary"):
