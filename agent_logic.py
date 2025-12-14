@@ -27,7 +27,20 @@ from core.ui_utils import print_html
 # 1. System Prompt (Agent Role Definition)
 # ============================================================================
 
-SYSTEM_PROMPT = """你是一名专业的量化金融分析师助手。你的任务是协助用户获取金融市场数据，计算技术指标，并生成可视化图表来分析市场趋势。
+
+def _get_system_prompt() -> str:
+    """
+    Generate system prompt with current date injected.
+
+    This ensures the LLM knows the current date and won't use its training cutoff date
+    when interpreting relative time expressions like "最近两个月" or "近期".
+    """
+    current_date = datetime.now().strftime("%Y年%m月%d日")
+
+    return f"""你是一名专业的量化金融分析师助手。你的任务是协助用户获取金融市场数据，计算技术指标，并生成可视化图表来分析市场趋势。
+
+**重要时间信息**: 今天是 {current_date}。
+当用户提到"最近X天/月"、"近期"、"当前"等相对时间词时，请基于 {current_date} 来计算日期范围。
 
 你的能力包括：
 1. 获取 A 股和 ETF 的历史行情数据
@@ -44,45 +57,62 @@ SYSTEM_PROMPT = """你是一名专业的量化金融分析师助手。你的任�
 你可以使用以下工具：
 
 **fetch_stock_data**
-获取 A 股历史数据
+获取 A 股历史数据。
 参数：
 - symbol: 股票代码（例如 "600519" 表示贵州茅台）
-- start_date: 开始日期（格式：YYYYMMDD）
-- end_date: 结束日期（格式：YYYYMMDD）
+- days: 获取最近 N 天的数据（整数，推荐使用此参数）
+  * 如果用户说"最近两个月"，请传递 60
+  * 如果用户说"近一周"，请传递 7
+  * 如果用户说"三个月"，请传递 90
+- start_date: 开始日期（格式：YYYYMMDD，可选）
+- end_date: 结束日期（格式：YYYYMMDD，可选）
+
+**推荐**：优先使用 `days` 参数，系统会自动计算对应的日期范围（从今天往前推）。
 
 **fetch_etf_data**
-获取 ETF 历史数据
+获取 ETF 历史数据。
 参数：
 - symbol: ETF 代码（例如 "510300" 表示沪深300ETF）
-- start_date: 开始日期（格式：YYYYMMDD）
-- end_date: 结束日期（格式：YYYYMMDD）
+- days: 获取最近 N 天的数据（整数，推荐使用此参数）
+  * 如果用户说"最近两个月"，请传递 60
+  * 如果用户说"近一周"，请传递 7
+  * 如果用户说"三个月"，请传递 90
+- start_date: 开始日期（格式：YYYYMMDD，可选）
+- end_date: 结束日期（格式：YYYYMMDD，可选）
+
+**推荐**：优先使用 `days` 参数，系统会自动计算对应的日期范围（从今天往前推）。
 
 **analyze_and_plot**
-分析数据并生成图表
+分析数据并生成图表。
 参数：
 - data_id: 数据标识符（由前面的 fetch 工具返回）
 - chart_type: 图表类型（"auto", "basic", "ma", "macd", "comprehensive"）
 
 当用户提出请求时，你应该：
 1. 解析用户意图，提取股票代码、时间范围等关键信息
-2. 调用相应的工具获取数据
-3. **必须调用 analyze_and_plot 生成分析图表**
-4. 图表生成后，基于技术指标提供简短的分析报告
+2. 将相对时间转换为天数（如"最近两个月" = 60天）
+3. 调用相应的工具获取数据（优先使用 `days` 参数）
+4. **必须调用 analyze_and_plot 生成分析图表**
+5. 图表生成后，基于技术指标提供简短的分析报告
 
 **重要**：你必须实际执行工具调用，而不是描述将要调用什么工具。
 
 请以 JSON 格式返回你的工具调用：
-{
+{{
   "thought": "你的思考过程",
   "action": "工具名称",
-  "action_input": {
+  "action_input": {{
     "参数名": "参数值"
-  }
-}
+  }}
+}}
 
 **只有在所有工具都已执行完毕后**，才能提供最终的文字分析报告。
 在提供最终答案时，不要使用 JSON 格式，直接用自然语言回答即可。
 """
+
+
+# Legacy constant for backward compatibility
+SYSTEM_PROMPT = _get_system_prompt()
 
 
 # ============================================================================
@@ -122,15 +152,37 @@ data_store = FinancialDataStore()
 
 
 def tool_fetch_stock_data(
-    symbol: str, start_date: str, end_date: str
+    symbol: str,
+    days: Optional[int] = None,
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
     Tool: Fetch stock historical data.
+
+    Priority: If `days` is provided, it will be used to calculate date range.
+    Otherwise, start_date and end_date will be used.
+
+    Args:
+        symbol: Stock code
+        days: Number of days to fetch (from today backwards)
+        start_date: Start date in YYYYMMDD format (optional)
+        end_date: End date in YYYYMMDD format (optional)
 
     Returns:
         Dictionary with status, data_id, and summary information
     """
     try:
+        # Calculate date range from days parameter (recommended)
+        if days is not None:
+            end_date = datetime.now().strftime("%Y%m%d")
+            start_date = (datetime.now() - timedelta(days=days)).strftime("%Y%m%d")
+        # Use explicit dates if provided
+        elif start_date is None or end_date is None:
+            # Default: last 60 days
+            end_date = datetime.now().strftime("%Y%m%d")
+            start_date = (datetime.now() - timedelta(days=60)).strftime("%Y%m%d")
+
         df = fetch_stock_daily(symbol, start_date, end_date, adjust="qfq")
 
         if df is None or df.empty:
@@ -170,14 +222,38 @@ def tool_fetch_stock_data(
         return {"status": "error", "message": f"获取数据时出错: {str(e)}"}
 
 
-def tool_fetch_etf_data(symbol: str, start_date: str, end_date: str) -> Dict[str, Any]:
+def tool_fetch_etf_data(
+    symbol: str,
+    days: Optional[int] = None,
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+) -> Dict[str, Any]:
     """
     Tool: Fetch ETF historical data.
+
+    Priority: If `days` is provided, it will be used to calculate date range.
+    Otherwise, start_date and end_date will be used.
+
+    Args:
+        symbol: ETF code
+        days: Number of days to fetch (from today backwards)
+        start_date: Start date in YYYYMMDD format (optional)
+        end_date: End date in YYYYMMDD format (optional)
 
     Returns:
         Dictionary with status, data_id, and summary information
     """
     try:
+        # Calculate date range from days parameter (recommended)
+        if days is not None:
+            end_date = datetime.now().strftime("%Y%m%d")
+            start_date = (datetime.now() - timedelta(days=days)).strftime("%Y%m%d")
+        # Use explicit dates if provided
+        elif start_date is None or end_date is None:
+            # Default: last 60 days
+            end_date = datetime.now().strftime("%Y%m%d")
+            start_date = (datetime.now() - timedelta(days=60)).strftime("%Y%m%d")
+
         df = fetch_etf_daily(symbol, start_date, end_date, adjust="qfq")
 
         if df is None or df.empty:
@@ -368,8 +444,10 @@ def run_agent(
         Dictionary with final response and execution history
     """
     history = []
+    # Use dynamic prompt with current date
+    system_prompt = _get_system_prompt()
     conversation = [
-        {"role": "system", "content": SYSTEM_PROMPT},
+        {"role": "system", "content": system_prompt},
         {"role": "user", "content": user_query},
     ]
 

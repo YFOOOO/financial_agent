@@ -2,6 +2,157 @@
 
 > 记录所有优化尝试和实验结果
 
+---
+
+## 实验 #001: 日期解析修复（LLM 训练截止日期问题）
+
+**日期**: 2025-12-14  
+**类型**: Bug 修复  
+**优先级**: ⭐⭐⭐⭐⭐ 高（影响功能正确性）
+
+### 问题描述
+
+**现象**: 
+用户查询"最近两个月"时，LLM 基于其训练数据截止日期（如 2023-04）推算，导致获取的是过时的数据范围，而非从当前日期往前推 60 天。
+
+**根本原因**:
+1. 系统 Prompt 没有告知 LLM 当前日期
+2. 工具描述使用绝对日期（start_date/end_date），LLM 会推算具体日期
+3. LLM 只能基于训练数据中的最新日期来理解"最近"、"当前"等相对时间词
+
+**影响范围**:
+- 所有使用相对时间词的查询（"最近X天/月"、"近期"、"当前"等）
+- 用户体验严重受损（数据不准确）
+
+### 修复方案
+
+采用 **方案 C: 引导 LLM 使用相对天数** + **方案 A: 注入当前日期**
+
+#### 修改内容
+
+**1. 动态生成系统 Prompt（agent_logic.py）**
+
+```python
+def _get_system_prompt() -> str:
+    """生成包含当前日期的系统 Prompt"""
+    current_date = datetime.now().strftime("%Y年%m月%d日")
+    
+    return f"""你是一名专业的量化金融分析师助手。
+
+**重要时间信息**: 今天是 {current_date}。
+当用户提到"最近X天/月"、"近期"、"当前"等相对时间词时，
+请基于 {current_date} 来计算日期范围。
+
+...
+"""
+```
+
+**2. 优化工具描述（引导使用 days 参数）**
+
+```python
+**fetch_stock_data**
+获取 A 股历史数据。
+参数：
+- symbol: 股票代码（例如 "600519" 表示贵州茅台）
+- days: 获取最近 N 天的数据（整数，推荐使用此参数）
+  * 如果用户说"最近两个月"，请传递 60
+  * 如果用户说"近一周"，请传递 7
+  * 如果用户说"三个月"，请传递 90
+- start_date: 开始日期（格式：YYYYMMDD，可选）
+- end_date: 结束日期（格式：YYYYMMDD，可选）
+
+**推荐**：优先使用 `days` 参数，系统会自动计算对应的日期范围。
+```
+
+**3. 修改工具函数支持 days 参数**
+
+```python
+def tool_fetch_stock_data(
+    symbol: str, 
+    days: Optional[int] = None,
+    start_date: Optional[str] = None, 
+    end_date: Optional[str] = None
+) -> Dict[str, Any]:
+    # 优先使用 days 参数
+    if days is not None:
+        end_date = datetime.now().strftime("%Y%m%d")
+        start_date = (datetime.now() - timedelta(days=days)).strftime("%Y%m%d")
+    # 兼容显式日期
+    elif start_date is None or end_date is None:
+        # 默认 60 天
+        end_date = datetime.now().strftime("%Y%m%d")
+        start_date = (datetime.now() - timedelta(days=60)).strftime("%Y%m%d")
+    
+    df = fetch_stock_daily(symbol, start_date, end_date, adjust="qfq")
+    ...
+```
+
+**4. 更新 run_agent 使用动态 Prompt**
+
+```python
+def run_agent(user_query: str, model: str = "gpt-4o-mini", ...):
+    # 使用动态 Prompt（包含当前日期）
+    system_prompt = _get_system_prompt()
+    conversation = [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": user_query},
+    ]
+    ...
+```
+
+### 预期效果
+
+**修复前**:
+- 用户: "分析最近两个月的数据"
+- LLM 推算: 2023-02-01 到 2023-04-01（基于训练截止日期）
+- 结果: ❌ 获取过时数据
+
+**修复后**:
+- 用户: "分析最近两个月的数据"
+- LLM 理解: 今天是 2025-12-14，最近两个月 = 60天
+- LLM 调用: `fetch_stock_data(symbol="600519", days=60)`
+- 系统计算: 2025-10-15 到 2025-12-14
+- 结果: ✅ 获取正确的当前数据
+
+### 测试验证
+
+**代码检查**:
+- ✅ `_get_system_prompt()` 包含当前日期
+- ✅ Prompt 引导使用 `days` 参数
+- ✅ 工具函数支持 `days` 参数
+- ✅ `run_agent` 使用动态 Prompt
+
+**预期行为**:
+- 查询"最近两个月" → LLM 传递 `days=60`
+- 查询"近一周" → LLM 传递 `days=7`  
+- 查询"三个月" → LLM 传递 `days=90`
+
+### 结论
+
+✅ **修复完成**
+
+**技术方案**:
+- 混合策略: Prompt 注入日期 + 引导相对天数 + 工具函数自动计算
+- 兼容性: 保留 start_date/end_date 参数，向后兼容
+- 健壮性: 默认 60 天，避免参数缺失导致错误
+
+**影响**:
+- 功能正确性: 从 ❌ 错误 → ✅ 正确
+- 用户体验: 大幅提升
+- 代码改动: 最小化（仅 agent_logic.py）
+
+**学到的经验**:
+1. LLM 没有实时时间感知，必须在 Prompt 中明确告知
+2. 相对时间比绝对日期更适合工具调用（避免 LLM 推算错误）
+3. 工具描述要清晰引导 LLM 使用推荐参数
+4. 修复 bug 时要考虑向后兼容性
+
+**下一步**:
+- 实际测试验证（需要运行环境）
+- 考虑扩展到更多时间表达（"上个月"、"今年"等）
+
+---
+
 ## 实验记录格式
 
 每个实验使用以下模板：
