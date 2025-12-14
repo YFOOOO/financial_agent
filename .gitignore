@@ -32,12 +32,23 @@ ENV/
 .ipynb_checkpoints
 *.ipynb_checkpoints/
 
-# Output files
-outputs/
-*.png
+# Output files (exclude from git)
+# Agent 运行时输出（完全排除）
+outputs/**/*                      
+!outputs/README.md                
+
+# 全局文件类型排除
 *.jpg
 *.csv
+!coffee_sales.csv                 
 *.xlsx
+
+# 图片文件（特殊处理）
+*.png
+# 优化实验演示图（需要追踪）
+!optimization/outputs/baseline_demo.png
+!optimization/outputs/optimized_demo.png
+!optimization/outputs/**/demo_*.png
 
 # IDEs
 .vscode/

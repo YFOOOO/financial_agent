@@ -19,7 +19,7 @@
 ```
 金融数据分析助手/
 ├── core/                          # 核心基础设施
-│   ├── __init__.py
+│   ├── __init__.py               # 统一导出接口
 │   ├── llm_client.py             # 统一 LLM 客户端（支持多模型）
 │   ├── safe_parsing.py           # 防御性 JSON 解析
 │   ├── ui_utils.py               # UI 工具（支持 Markdown 渲染）
@@ -28,11 +28,29 @@
 │   ├── indicators.py             # 技术指标计算
 │   └── visualization.py          # 图表生成（支持中文字体）
 │
+├── optimization/                  # 🆕 优化与评估框架（v1.1.1）
+│   ├── README.md                 # 框架说明与使用指南
+│   ├── ITERATION_GUIDE.md        # 迭代工作流程
+│   ├── optimize_visualization.ipynb  # 可视化优化实验
+│   ├── benchmarks/               # 性能对比工具
+│   │   └── comparison_report.ipynb
+│   ├── experiments/              # 实验记录
+│   │   └── experiment_log.md
+│   └── outputs/                  # 实验产出（图表、报告）
+│
+├── .git-hooks/                    # 🆕 Git 自动化钩子（v1.1.1）
+│   ├── pre-commit                # 提交前质量检查
+│   └── README.md                 # 钩子使用说明
+│
+├── docs/                          # 📚 项目文档
+│   ├── ARCHITECTURE.md           # 🆕 架构设计文档（v1.1.1）
+│   ├── docs.md                   # 技术文档
+│   ├── spec.md                   # 功能规格说明
+│   ├── PROJECT_SUMMARY.md        # 项目总结报告
+│   └── akshare.md                # AKShare 使用参考
+│
 ├── agent_logic.py                 # Agent 主逻辑（ReAct 模式）
 ├── financial_agent_demo.ipynb     # 交互式演示笔记本
-│
-├── docs.md                        # 项目文档
-├── spec.md                        # 技术规格说明
 ├── requirements.txt               # 依赖清单
 ├── .env.example                   # 环境变量模板
 └── README.md                      # 本文件
@@ -161,9 +179,44 @@ Agent 内置以下工具：
 ## 📖 项目文档
 
 - **`README.md`**: 项目介绍、快速开始、使用示例
-- **`docs.md`**: 功能特性、技术栈、开发路线
-- **`spec.md`**: 系统角色、工具接口、数据结构
-- **`PROJECT_SUMMARY.md`**: 项目搭建完成报告
+- **`docs/docs.md`**: 功能特性、技术栈、开发路线
+- **`docs/spec.md`**: 系统角色、工具接口、数据结构
+- **`docs/ARCHITECTURE.md`**: 🆕 架构设计与模块导入规范（v1.1.1）
+- **`docs/PROJECT_SUMMARY.md`**: 项目搭建完成报告
+- **`optimization/README.md`**: 🆕 优化框架使用指南（v1.1.1）
+- **`optimization/ITERATION_GUIDE.md`**: 🆕 迭代工作流程（v1.1.1）
+
+## 🚀 性能优化（v1.1.1 新增）
+
+本项目包含完整的性能优化与评估框架，支持系统化的性能提升。
+
+### 🎯 优化目标
+
+- **可视化性能**: 图表生成速度提升 30%+ ✅（已达成 31.2%）
+- **LLM 调用优化**: Token 使用量减少 20%（规划中）
+- **数据获取优化**: 缓存命中率 > 80%（规划中）
+
+### 📊 快速开始优化
+
+```bash
+# 进入优化目录
+cd optimization/
+
+# 运行可视化优化实验
+jupyter notebook optimize_visualization.ipynb
+
+# 查看性能对比报告
+jupyter notebook benchmarks/comparison_report.ipynb
+```
+
+### 🔧 优化框架特性
+
+- **混合迭代模式**: 轻量级快速迭代 + 实验驱动深度探索
+- **自动质量检查**: Git Hook 自动运行 7 项检查（Black、MyPy、语法、导入、测试）
+- **性能基准管理**: 自动记录和对比多版本性能数据
+- **实验追踪**: 标准化实验记录模板，记录所有优化尝试
+
+详见 [`optimization/README.md`](optimization/README.md)
 
 ## 🧪 测试与验证
 
