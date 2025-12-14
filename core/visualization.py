@@ -105,7 +105,7 @@ _CHINESE_FONT = _configure_chinese_font()
 
 def _create_style_with_chinese_font(**kwargs):
     """
-    Create mplfinance style with Chinese font support.
+    Create mplfinance style with Chinese font support and professional visual settings.
 
     Args:
         **kwargs: Additional style parameters for make_mpf_style
@@ -121,6 +121,17 @@ def _create_style_with_chinese_font(**kwargs):
             {
                 "font.sans-serif": [_CHINESE_FONT, "DejaVu Sans"],
                 "axes.unicode_minus": False,
+                # Professional font settings (similar to Sina Finance)
+                "axes.labelsize": 10,  # Axis label font size
+                "xtick.labelsize": 9,  # X-axis tick label size
+                "ytick.labelsize": 9,  # Y-axis tick label size
+                "axes.titlesize": 14,  # Title font size
+                "axes.titleweight": "bold",  # Bold title
+                # Grid line optimization (light and subtle)
+                "grid.color": "#E0E0E0",  # Light gray grid
+                "grid.linestyle": "-",  # Solid line
+                "grid.linewidth": 0.5,  # Thin lines
+                "grid.alpha": 0.3,  # Subtle transparency
             }
         )
 
@@ -361,20 +372,25 @@ def plot_comprehensive_chart(
 
     # Prepare all plots
     addplots = []
-    ma_colors = ["blue", "orange", "purple"]
+    # Professional MA colors (inspired by Sina Finance)
+    ma_colors = ["#1E90FF", "#FF69B4", "#FFD700"]  # Blue, Pink, Gold
     panel_count = 1  # Start with 1 (volume is always panel 1)
 
-    # Moving Averages on main chart (panel 0)
+    # Moving Averages on main chart (panel 0) - Thicker lines for clarity
     for i, period in enumerate(ma_periods):
         ma_col = f"ma_{period}"
         if ma_col in df.columns and not df[ma_col].isna().all():
             addplots.append(
                 mpf.make_addplot(
-                    df[ma_col], panel=0, color=ma_colors[i % len(ma_colors)], width=1.5
+                    df[ma_col],
+                    panel=0,
+                    color=ma_colors[i % len(ma_colors)],
+                    width=2.5,  # Thicker for better visibility
+                    alpha=0.85,  # Slight transparency
                 )
             )
 
-    # MACD on next panel (if available)
+    # MACD on next panel (if available) - Professional styling
     has_macd = "macd" in df.columns and not df["macd"].isna().all()
     if has_macd:
         panel_count += 1
@@ -383,70 +399,85 @@ def plot_comprehensive_chart(
                 mpf.make_addplot(
                     df["macd"],
                     panel=panel_count,
-                    color="blue",
-                    width=1.5,
+                    color="#1E90FF",  # DodgerBlue
+                    width=2.0,
                     ylabel="MACD",
                 ),
                 mpf.make_addplot(
-                    df["macd_signal"], panel=panel_count, color="red", width=1.5
+                    df["macd_signal"],
+                    panel=panel_count,
+                    color="#FF69B4",  # HotPink
+                    width=2.0,
                 ),
                 mpf.make_addplot(
                     df["macd_hist"],
                     panel=panel_count,
                     type="bar",
                     color="gray",
-                    alpha=0.5,
+                    alpha=0.6,  # More visible histogram
                 ),
             ]
         )
 
-    # RSI on next panel (if available)
+    # RSI on next panel (if available) - Professional styling
     has_rsi = "rsi_14" in df.columns and not df["rsi_14"].isna().all()
     if has_rsi:
         panel_count += 1
         addplots.append(
             mpf.make_addplot(
-                df["rsi_14"], panel=panel_count, color="purple", width=1.5, ylabel="RSI"
+                df["rsi_14"],
+                panel=panel_count,
+                color="#9370DB",  # MediumPurple
+                width=2.0,
+                ylabel="RSI",
             )
         )
-        # Add RSI reference lines (30 and 70)
+        # Add RSI reference lines (30 and 70) - More subtle
         addplots.extend(
             [
                 mpf.make_addplot(
                     [30] * len(df),
                     panel=panel_count,
-                    color="green",
+                    color="#32CD32",  # LimeGreen
                     linestyle="--",
-                    width=0.8,
+                    width=1.0,
+                    alpha=0.6,
                 ),
                 mpf.make_addplot(
                     [70] * len(df),
                     panel=panel_count,
-                    color="red",
+                    color="#DC143C",  # Crimson
                     linestyle="--",
-                    width=0.8,
+                    width=1.0,
+                    alpha=0.6,
                 ),
             ]
         )
 
-    # Create custom style with Chinese font support
+    # Create custom style with Chinese font support and professional look
     mc = mpf.make_marketcolors(
         up="red", down="green", edge="inherit", wick="inherit", volume="in", alpha=0.9
     )
 
     s = _create_style_with_chinese_font(
-        marketcolors=mc, gridstyle="--", y_on_right=False
+        marketcolors=mc,
+        gridstyle="-",
+        y_on_right=False,  # Solid grid lines (handled by rc params)
     )
 
-    # Calculate panel ratios dynamically
-    # Main chart gets 4, volume gets 1, each indicator gets 1
-    panel_ratios = [4, 1]  # Main chart + volume
+    # Calculate panel ratios dynamically (inspired by Sina Finance layout)
+    # Main chart gets more space, indicators get proportional space
+    panel_ratios = [4.5, 1.2]  # Main chart + volume (optimized ratio)
     if has_macd:
-        panel_ratios.append(1)
+        panel_ratios.append(1.0)  # MACD panel
     if has_rsi:
-        panel_ratios.append(1)
+        panel_ratios.append(1.0)  # RSI panel
 
-    # Plot
+    # Determine x-axis rotation based on data density
+    data_points = len(df)
+    xrotation = 0 if data_points <= 40 else 15  # Rotate labels if too dense
+
+    # Plot with professional settings
     mpf.plot(
         df,
         type="candle",
@@ -460,6 +491,8 @@ def plot_comprehensive_chart(
         show_nontrading=False,
         panel_ratios=tuple(panel_ratios),
         figsize=(14, 10),
+        xrotation=xrotation,  # Smart label rotation
+        datetime_format="%m-%d",  # Simplified date format (month-day)
     )
 
     print(f"✅ Comprehensive chart saved to: {save_path}")

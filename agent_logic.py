@@ -191,10 +191,16 @@ def tool_fetch_stock_data(
                 "message": f"无法获取股票 {symbol} 的数据，请检查股票代码是否正确。",
             }
 
-        # Store data
+        # Fetch stock name (with fallback to symbol if fails)
+        from core.data_fetcher import get_stock_name
+
+        stock_name = get_stock_name(symbol)
+
+        # Store data with name
         metadata = {
             "type": "stock",
             "symbol": symbol,
+            "name": stock_name or symbol,  # Fallback to symbol if name fetch fails
             "start_date": start_date,
             "end_date": end_date,
         }
@@ -262,10 +268,16 @@ def tool_fetch_etf_data(
                 "message": f"无法获取 ETF {symbol} 的数据，请检查代码是否正确。",
             }
 
-        # Store data
+        # Fetch ETF name (with fallback to symbol if fails)
+        from core.data_fetcher import get_etf_name
+
+        etf_name = get_etf_name(symbol)
+
+        # Store data with name
         metadata = {
             "type": "etf",
             "symbol": symbol,
+            "name": etf_name or symbol,  # Fallback to symbol if name fetch fails
             "start_date": start_date,
             "end_date": end_date,
         }
@@ -317,9 +329,16 @@ def tool_analyze_and_plot(data_id: str, chart_type: str = "auto") -> Dict[str, A
         # Get latest indicator summary
         indicator_summary = get_indicator_summary(df_with_signals)
 
-        # Generate chart
+        # Generate chart with professional title
         symbol = metadata.get("symbol", "Unknown")
-        title = f"{symbol} Technical Analysis"
+        name = metadata.get("name", symbol)  # Get name, fallback to symbol
+
+        # Professional title format: "股票名称(代码) 技术分析"
+        if name != symbol:
+            title = f"{name}({symbol}) 技术分析"
+        else:
+            title = f"{symbol} 技术分析"  # Fallback if name not available
+
         chart_path = plot_auto(df_with_signals, title=title, chart_type=chart_type)
 
         # Get latest signals

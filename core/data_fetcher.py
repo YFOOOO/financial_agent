@@ -17,6 +17,81 @@ logger = logging.getLogger(__name__)
 
 
 # ============================================================================
+# 0. Stock/ETF Name Fetching (Metadata)
+# ============================================================================
+
+
+def get_stock_name(symbol: str) -> Optional[str]:
+    """
+    Fetch stock name from AKShare.
+
+    Args:
+        symbol: Stock code (e.g., "600519")
+
+    Returns:
+        Stock name (e.g., "贵州茅台") or None if fetch fails
+
+    Example:
+        >>> name = get_stock_name("600519")
+        >>> print(name)  # "贵州茅台"
+    """
+    try:
+        logger.info(f"Fetching stock name for: {symbol}")
+        info = ak.stock_individual_info_em(symbol=symbol)
+
+        # Find the row with '股票简称' or '股票名称'
+        name_row = info[info["item"].isin(["股票简称", "股票名称"])]
+
+        if not name_row.empty:
+            name = name_row.iloc[0]["value"]
+            logger.info(f"Stock name found: {name}")
+            return name
+        else:
+            logger.warning(f"Stock name not found for {symbol}")
+            return None
+
+    except Exception as e:
+        logger.error(f"Error fetching stock name for {symbol}: {e}")
+        return None
+
+
+def get_etf_name(symbol: str) -> Optional[str]:
+    """
+    Fetch ETF name from AKShare.
+
+    Args:
+        symbol: ETF code (e.g., "510300")
+
+    Returns:
+        ETF name (e.g., "沪深300ETF") or None if fetch fails
+
+    Example:
+        >>> name = get_etf_name("510300")
+        >>> print(name)  # "沪深300ETF" or similar
+    """
+    try:
+        logger.info(f"Fetching ETF name for: {symbol}")
+
+        # Get ETF spot data which includes name
+        df = ak.fund_etf_spot_em()
+
+        # Find the ETF by code
+        etf_row = df[df["代码"] == symbol]
+
+        if not etf_row.empty:
+            name = etf_row.iloc[0]["名称"]
+            logger.info(f"ETF name found: {name}")
+            return name
+        else:
+            logger.warning(f"ETF name not found for {symbol}")
+            return None
+
+    except Exception as e:
+        logger.error(f"Error fetching ETF name for {symbol}: {e}")
+        return None
+
+
+# ============================================================================
 # 1. Stock Data Fetching (A-shares)
 # ============================================================================
 
