@@ -22,6 +22,18 @@ from core.indicators import (
 from core.visualization import plot_auto, plot_comprehensive_chart
 from core.ui_utils import print_html
 
+# Import Skill Orchestrator (v1.4.0 - Skill Mode Integration)
+try:
+    from skills import SkillOrchestrator
+
+    orchestrator = SkillOrchestrator()
+    USE_SKILLS = True
+    print("✅ Skill 模式已启用")
+except ImportError as e:
+    USE_SKILLS = False
+    orchestrator = None
+    print(f"⚠️  Skill 模式未启用，使用传统工具模式: {e}")
+
 
 # ============================================================================
 # 1. System Prompt (Agent Role Definition)
@@ -370,6 +382,102 @@ TOOLS = {
 
 
 # ============================================================================
+# 2.5. Skill Integration Helper Functions (v1.4.0)
+# ============================================================================
+
+
+def _format_skill_result_for_data_fetch(skill_result: dict) -> dict:
+    """
+    将 Skill 数据获取结果格式化为传统格式
+
+    Args:
+        skill_result: Skill 返回的结果
+
+    Returns:
+        dict: 传统工具格式的结果
+    """
+    if not skill_result.get("success"):
+        return {"status": "error", "message": skill_result.get("error", "未知错误")}
+
+    # 存储 DataFrame 到 data_store
+    df = skill_result["data"]
+    metadata = {
+        "type": "stock",  # 或 "etf"，根据工具名判断
+        "symbol": skill_result.get("symbol", ""),
+        "name": skill_result.get("symbol", ""),
+        "start_date": "",
+        "end_date": "",
+    }
+    data_id = data_store.store(df, metadata)
+
+    # 生成摘要信息（与传统格式一致）
+    latest = df.iloc[-1]
+    first = df.iloc[0]
+
+    # 计算涨跌幅
+    if "收盘" in df.columns:
+        change_pct = ((latest["收盘"] - first["收盘"]) / first["收盘"]) * 100
+        latest_price = round(latest["收盘"], 2)
+    elif "close" in df.columns:
+        change_pct = ((latest["close"] - first["close"]) / first["close"]) * 100
+        latest_price = round(latest["close"], 2)
+    else:
+        change_pct = 0
+        latest_price = 0
+
+    return {
+        "status": "success",
+        "data_id": data_id,
+        "symbol": skill_result.get("symbol", ""),
+        "records": skill_result.get("rows", len(df)),
+        "date_range": f"{df.index[0].strftime('%Y-%m-%d')} to {df.index[-1].strftime('%Y-%m-%d')}",
+        "latest_price": latest_price,
+        "period_change": f"{change_pct:+.2f}%",
+        "message": skill_result.get("message", "数据获取成功"),
+    }
+
+
+def _try_skill_execution(tool_name: str, tool_input: dict) -> Optional[dict]:
+    """
+    尝试使用 Skill 执行工具
+
+    Args:
+        tool_name: 工具名称
+        tool_input: 工具参数
+
+    Returns:
+        dict: 执行结果，失败则返回 None
+    """
+    if not USE_SKILLS or orchestrator is None:
+        return None
+
+    try:
+        # 工具名映射（传统工具名 → Skill 工具名）
+        skill_tool_mapping = {
+            "fetch_stock_data": "fetch_stock_data",
+            "fetch_etf_data": "fetch_etf_data",
+            # analyze_and_plot 暂时不映射，因为需要重构逻辑
+        }
+
+        skill_tool_name = skill_tool_mapping.get(tool_name)
+        if not skill_tool_name:
+            return None  # 不支持的工具，回退到传统模式
+
+        # 执行 Skill 工具
+        skill_result = orchestrator.execute_tool(skill_tool_name, tool_input)
+
+        # 格式化结果
+        if tool_name in ["fetch_stock_data", "fetch_etf_data"]:
+            return _format_skill_result_for_data_fetch(skill_result)
+
+        return skill_result
+
+    except Exception as e:
+        print(f"⚠️  Skill 执行失败，回退到传统模式: {e}")
+        return None
+
+
+# ============================================================================
 # 3. Agent Execution Loop (ReAct Pattern)
 # ============================================================================
 
@@ -396,9 +504,19 @@ def execute_tool(tool_name: str, tool_input: Dict) -> Any:
     """
     Execute a tool with given input.
 
+    v1.4.0: 支持混合模式（Skills 优先 + 传统工具 fallback）
+
     Returns:
         Tool execution result
     """
+    # 1. 尝试使用 Skill 模式执行
+    skill_result = _try_skill_execution(tool_name, tool_input)
+    if skill_result is not None:
+        print(f"✅ 使用 Skill 模式执行: {tool_name}")
+        return skill_result
+
+    # 2. 回退到传统工具
+    print(f"📌 使用传统模式执行: {tool_name}")
     if tool_name not in TOOLS:
         return {"status": "error", "message": f"Unknown tool: {tool_name}"}
 
