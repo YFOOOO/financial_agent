@@ -1,0 +1,69 @@
+{
+  "name": "dark_theme",
+  "description": "深色主题 - 适用于现代化界面和夜间查看",
+  "colors": {
+    "background": "#1e1e1e",
+    "face": "#1e1e1e",
+    "edge": "#2d2d2d",
+    "grid": "#3a3a3a",
+    "alpha": 0.9
+  },
+  "candle": {
+    "up": "#ff4444",
+    "down": "#00ff00",
+    "edge": "inherit",
+    "wick": "inherit",
+    "alpha": 0.9
+  },
+  "volume": {
+    "up": "#ff4444",
+    "down": "#00ff00",
+    "alpha": 0.5
+  },
+  "ma_lines": {
+    "MA_5": {
+      "color": "#ffffff",
+      "linewidth": 1,
+      "linestyle": "-"
+    },
+    "MA_10": {
+      "color": "#ffff00",
+      "linewidth": 1,
+      "linestyle": "-"
+    },
+    "MA_20": {
+      "color": "#ff00ff",
+      "linewidth": 1,
+      "linestyle": "-"
+    },
+    "MA_60": {
+      "color": "#00ffff",
+      "linewidth": 1,
+      "linestyle": "-"
+    }
+  },
+  "macd": {
+    "dif": {
+      "color": "#ffffff",
+      "linewidth": 1
+    },
+    "dea": {
+      "color": "#ffff00",
+      "linewidth": 1
+    },
+    "bar": {
+      "color": "#808080",
+      "alpha": 0.5
+    }
+  },
+  "text": {
+    "color": "#ffffff",
+    "title_size": 14,
+    "label_size": 10
+  },
+  "grid": {
+    "style": "--",
+    "color": "#3a3a3a",
+    "alpha": 0.5
+  }
+}

@@ -1,0 +1,69 @@
+{
+  "name": "light_theme",
+  "description": "浅色主题 - 适用于打印输出和传统报告",
+  "colors": {
+    "background": "#ffffff",
+    "face": "#ffffff",
+    "edge": "#e0e0e0",
+    "grid": "#cccccc",
+    "alpha": 1.0
+  },
+  "candle": {
+    "up": "#ff3333",
+    "down": "#33cc33",
+    "edge": "inherit",
+    "wick": "inherit",
+    "alpha": 1.0
+  },
+  "volume": {
+    "up": "#ff3333",
+    "down": "#33cc33",
+    "alpha": 0.3
+  },
+  "ma_lines": {
+    "MA_5": {
+      "color": "#0000ff",
+      "linewidth": 1,
+      "linestyle": "-"
+    },
+    "MA_10": {
+      "color": "#ff8800",
+      "linewidth": 1,
+      "linestyle": "-"
+    },
+    "MA_20": {
+      "color": "#ff00ff",
+      "linewidth": 1,
+      "linestyle": "-"
+    },
+    "MA_60": {
+      "color": "#00aa00",
+      "linewidth": 1,
+      "linestyle": "-"
+    }
+  },
+  "macd": {
+    "dif": {
+      "color": "#0000ff",
+      "linewidth": 1
+    },
+    "dea": {
+      "color": "#ff8800",
+      "linewidth": 1
+    },
+    "bar": {
+      "color": "#666666",
+      "alpha": 0.3
+    }
+  },
+  "text": {
+    "color": "#000000",
+    "title_size": 14,
+    "label_size": 10
+  },
+  "grid": {
+    "style": "-",
+    "color": "#cccccc",
+    "alpha": 0.3
+  }
+}
