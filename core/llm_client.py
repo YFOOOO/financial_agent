@@ -15,7 +15,7 @@ It handles:
 import os
 import base64
 import mimetypes
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Any, cast
 from dotenv import load_dotenv
 from openai import OpenAI
 from anthropic import Anthropic
@@ -139,7 +139,11 @@ def get_response(model: str, prompt: str, temperature: float = 0) -> str:
             temperature=temperature,
             messages=[{"role": "user", "content": [{"type": "text", "text": prompt}]}],
         )
-        return message.content[0].text
+        # 类型守卫：确保是 TextBlock
+        first_block = message.content[0]
+        if hasattr(first_block, "text"):
+            return first_block.text  # type: ignore[union-attr]
+        return "Error: Unexpected response format from Claude"
 
     else:
         # OpenAI Compatible API
@@ -152,7 +156,8 @@ def get_response(model: str, prompt: str, temperature: float = 0) -> str:
             temperature=temperature,
             messages=[{"role": "user", "content": prompt}],
         )
-        return response.choices[0].message.content
+        content = response.choices[0].message.content
+        return content if content is not None else "Error: Empty response from LLM"
 
 
 # ============================================================================
@@ -197,25 +202,28 @@ def image_anthropic_call(
         messages=[
             {
                 "role": "user",
-                "content": [
-                    {"type": "text", "text": prompt},
-                    {
-                        "type": "image",
-                        "source": {
-                            "type": "base64",
-                            "media_type": media_type,
-                            "data": b64,
+                "content": cast(
+                    Any,  # 使用 Any 避免复杂的 TypedDict 类型匹配
+                    [
+                        {"type": "text", "text": prompt},
+                        {
+                            "type": "image",
+                            "source": {
+                                "type": "base64",
+                                "media_type": media_type,
+                                "data": b64,
+                            },
                         },
-                    },
-                ],
+                    ],
+                ),
             }
         ],
     )
 
     parts = []
     for block in msg.content or []:
-        if getattr(block, "type", None) == "text":
-            parts.append(block.text)
+        if hasattr(block, "text") and getattr(block, "type", None) == "text":
+            parts.append(block.text)  # type: ignore[union-attr]
     return "".join(parts).strip()
 
 
