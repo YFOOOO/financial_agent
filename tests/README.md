@@ -10,11 +10,21 @@
   - 验证 LLM 正确使用 `days` 参数
   - 验证日期计算基于当前日期而非训练截止日期
 
+### 优化验证测试
+- **`test_prompt_optimization.py`**: Prompt 优化效果验证（v1.3.0）
+  - 对比不同版本 Prompt 的实际表现（v1 精简版 vs v3 CoT版）
+  - 测试 Token 使用量、响应时间、分析质量
+  - 支持手动验证，避免自动化测试的成本
+  - 用于决策采纳哪个优化版本
+
 ## 运行测试
 
 ```bash
-# 运行单个测试
+# 运行回归测试
 python3 tests/test_date_fix.py
+
+# 运行 Prompt 优化验证（需要 LLM API）
+python3 tests/test_prompt_optimization.py
 
 # 运行所有测试（未来）
 python3 -m pytest tests/

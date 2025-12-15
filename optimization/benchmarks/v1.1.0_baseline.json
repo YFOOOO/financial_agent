@@ -1,0 +1,26 @@
+[
+  {
+    "query": "分析茅台最近两个月的走势",
+    "type": "relative_date",
+    "success": true,
+    "duration": 22.574162
+  },
+  {
+    "query": "看看平安银行今年的表现",
+    "type": "year_to_date",
+    "success": true,
+    "duration": 25.807318
+  },
+  {
+    "query": "分析 600519 和 000858 的 RSI",
+    "type": "multi_symbol",
+    "success": true,
+    "duration": 12.668496
+  },
+  {
+    "query": "帮我查一下沪深300ETF的技术指标",
+    "type": "etf_analysis",
+    "success": true,
+    "duration": 20.974626
+  }
+]

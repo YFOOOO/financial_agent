@@ -1,0 +1,23 @@
+{
+  "version": "v1.2.0",
+  "timestamp": "2025-12-14T23:42:02.037035",
+  "model": "gpt-4o-mini",
+  "test_cases_count": 4,
+  "performance": {
+    "end_to_end_avg_time": 8.684396743774414e-05,
+    "llm_avg_response_time": 5.210638046264649e-05,
+    "data_fetching_avg_time": 2.6053190231323244e-05
+  },
+  "quality": {
+    "format_correct_rate": 1.0,
+    "content_complete_rate": 0.0,
+    "has_trend_analysis_rate": 0.0,
+    "has_indicator_analysis_rate": 0.0,
+    "has_chart_rate": 0.0
+  },
+  "cost": {
+    "avg_total_tokens": 2500,
+    "total_cost_cny": 0.025,
+    "avg_cost_per_query_cny": 0.00625
+  }
+}
