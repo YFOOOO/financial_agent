@@ -7,6 +7,33 @@
 
 ---
 
+## [1.4.0] - 2025-12-15
+
+### 🧩 新增
+- Skill 模式架构重构：`skills/` 包、`BaseSkill` 抽象类、`SkillOrchestrator` 编排器、Skill 发现机制
+- 三个核心 Skills：`financial-data-fetch`、`technical-indicators`、`chart-generation`
+
+### 🔗 集成
+- 在 `agent_logic.py` 集成混合模式（Skills 优先，失败自动回退传统工具），保持 100% 向后兼容
+
+### 🧪 测试
+- 端到端测试通过：8/8，用时 3.07s
+- 覆盖：Skills 加载、工具执行、混合模式、加载/执行失败回退、参数与错误处理
+- 报告：`tests/E2E_TEST_REPORT.md`，脚本：`tests/test_e2e_skills.py`
+
+### 📚 文档
+- 新增 `docs/ARCHITECTURE_CLAUDE_SKILLS.md`（Skill 模式架构）
+- 对齐 `README.md` 与 `CHANGELOG.md` 版本信息
+
+### ⚠️ 已知问题（延后到 v1.5.0）
+- 图表生成与技术指标测试缺失（需要图形/文件依赖）
+- LLM 集成测试（需 API Key 与网络）暂不纳入自动测试
+
+### 🔧 破坏性变更
+- 无
+
+---
+
 ## [1.3.0] - 2025-12-14
 
 ### ⚡ 性能优化
@@ -372,7 +399,7 @@
 - **次版本号（Minor）**: 向下兼容的功能新增
 - **修订号（Patch）**: 向下兼容的问题修复
 
-**当前稳定版本**: v1.1.1  
+**当前稳定版本**: v1.4.0  
 **开发分支**: main  
 **发布标签**: [GitHub Releases](https://github.com/YFOOOO/financial_agent/releases)
 
@@ -386,4 +413,4 @@
 
 ---
 
-**Last Updated**: 2025-12-14 18:58 CST
+**Last Updated**: 2025-12-15 00:00 CST

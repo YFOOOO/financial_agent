@@ -13,12 +13,14 @@
 - **📉 精美可视化**: 生成专业 K 线图，支持中文显示和 Markdown 渲染
 - **🔧 模块化设计**: Core-Logic 分离，易于扩展和维护
 - **🎨 交互式开发**: 基于 Jupyter Notebook 的可视化调试环境
+- **🧩 Skill 模式架构（v1.4.0）**: 模块化技能系统 + 混合模式（Skills 优先，失败回退传统）
 
 ## 📂 项目结构
 
 ```
 金融数据分析助手/
 ├── core/                          # 核心基础设施
+├── skills/                        # Skill 模式（v1.4.0）
 ├── docs/                          # 📚 项目文档
 │   ├── ARCHITECTURE.md
 │   ├── DOCS_UPDATE_WORKFLOW.md
@@ -163,7 +165,8 @@ Agent 内置以下工具：
 - **`README.md`**: 项目介绍、快速开始、使用示例
 - **`docs/docs.md`**: 功能特性、技术栈、开发路线
 - **`docs/spec.md`**: 系统角色、工具接口、数据结构
-- **`docs/ARCHITECTURE.md`**: 🆕 架构设计与模块导入规范（v1.1.1）
+- **`docs/ARCHITECTURE.md`**: 架构设计与模块导入规范
+- **`docs/ARCHITECTURE_CLAUDE_SKILLS.md`**: Skill 模式架构设计（v1.4.0）
 - **`docs/PROJECT_SUMMARY.md`**: 项目搭建完成报告
 - **`optimization/README.md`**: 🆕 优化框架使用指南（v1.1.1）
 - **`optimization/ITERATION_GUIDE.md`**: 🆕 迭代工作流程（v1.1.1）
@@ -273,6 +276,7 @@ TOOLS["custom_analysis"] = tool_custom_analysis
 
 ## 📦 版本历史
 
+- **v1.4.0** (2025-12-15): Skill 模式架构重构 + 混合模式集成 + 端到端测试（8/8 通过）
 - **v1.2.0** (2025-12-14): 视觉优化 + 智能标题生成
 - **v1.1.2** (2025-12-14): 修复 LLM 日期推算错误
 - **v1.1.1** (2025-12-14): 优化框架 + 文档自动化
