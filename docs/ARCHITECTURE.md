@@ -258,5 +258,5 @@ def test_calculate_ma():
 
 ---
 
-**Last Updated**: 2025-12-14  
+**Last Updated**: 2025-12-14
 **Version**: v1.1.1
