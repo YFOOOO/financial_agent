@@ -1,0 +1,23 @@
+{
+  "baseline": {
+    "version": "v1.3.0",
+    "agent_time_sec": 14.35,
+    "viz_time_sec": 0.241,
+    "token_pre": 1658,
+    "token_post": 537
+  },
+  "current": {
+    "version": "v1.4.0",
+    "agent_time_sec": 0.246,
+    "viz_time_sec": 0.246,
+    "token_pre": 1658,
+    "token_post": 537,
+    "samples": [
+      0.338,
+      0.246,
+      0.227,
+      0.225,
+      0.314
+    ]
+  }
+}

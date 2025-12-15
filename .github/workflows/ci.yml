@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  offline-notebooks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.9"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Run offline notebook tests
+        env:
+          ENABLE_ONLINE_TESTS: "0"
+        run: |
+          pytest -q tests/test_notebooks_offline.py
+
+  online-tests:
+    runs-on: ubuntu-latest
+    if: ${{ env.ENABLE_ONLINE_TESTS == '1' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.9"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Run online tests
+        env:
+          ENABLE_ONLINE_TESTS: ${{ secrets.ENABLE_ONLINE_TESTS }}
+        run: |
+          pytest -q -m online

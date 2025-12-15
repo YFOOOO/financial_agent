@@ -24,6 +24,7 @@
 ### 📚 文档
 - 新增 `docs/ARCHITECTURE_CLAUDE_SKILLS.md`（Skill 模式架构）
 - 对齐 `README.md` 与 `CHANGELOG.md` 版本信息
+ - 新增次版本演示与性能对比 Notebook（`notebooks/v1.4.0_release_demo.ipynb`、`notebooks/v1.4.0_performance_compare.ipynb`），输出位于 `optimization/outputs/releases/v1.4.0/`
 
 ### ⚠️ 已知问题（延后到 v1.5.0）
 - 图表生成与技术指标测试缺失（需要图形/文件依赖）

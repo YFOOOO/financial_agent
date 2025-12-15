@@ -140,11 +140,17 @@ Agent 内置以下工具：
 - **Volume MA**: 成交量均线
 
 ## 🎨 UI 优化特性
-
 - **Markdown 自动渲染**: AI 输出自动识别并美化显示（标题、列表、代码、引用）
 - **中文字体支持**: 自动检测系统字体（macOS: STHeiti/PingFang SC）
 - **嵌套列表处理**: 智能规范化缩进，完美渲染复杂列表
 - **精美卡片样式**: 统一渐变边框，响应式布局
+
+## 🧪 版本演示与优化对比
+- 每个次版本提供 2 个 Notebook：
+  - `notebooks/v1.4.0_release_demo.ipynb`：端到端功能演示（Skills 混合模式、数据获取、指标、图表）
+  - `notebooks/v1.4.0_performance_compare.ipynb`：与上一稳定版本的性能对比（运行时长、可视化耗时、Token 参考）
+- 运行后产物位于 `optimization/outputs/releases/v1.4.0/`，包含 `figures/`、`metrics.json`
+- 可选脚本：`optimization/outputs/collect_release_metrics.py` 生成当前版本性能指标
 
 ## 🔑 支持的 LLM 模型
 
