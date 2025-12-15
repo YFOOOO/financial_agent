@@ -14,7 +14,7 @@ project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
 
 from skills.base_skill import BaseSkill
-from core.visualization import plot_basic_chart, plot_comprehensive_chart
+from core.visualization import plot_kline_basic, plot_comprehensive_chart
 
 
 class ChartGenerationSkill(BaseSkill):
@@ -167,8 +167,8 @@ class ChartGenerationSkill(BaseSkill):
                 else:
                     title = "K线图"
             
-            # 调用 core/visualization.py 的函数
-            result_path = plot_basic_chart(
+            # 调用 core/visualization.py 的函数（使用正确的函数名）
+            result_path = plot_kline_basic(
                 data=data,
                 title=title,
                 save_path=save_path if save_path else None

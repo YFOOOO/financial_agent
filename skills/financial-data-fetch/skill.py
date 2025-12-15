@@ -13,7 +13,7 @@ project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
 
 from skills.base_skill import BaseSkill
-from core.data_fetcher import fetch_stock_data, fetch_etf_data
+from core.data_fetcher import fetch_stock_daily, fetch_etf_daily
 
 
 class FinancialDataFetchSkill(BaseSkill):
@@ -133,8 +133,13 @@ class FinancialDataFetchSkill(BaseSkill):
             }
         
         try:
-            # 调用 core/data_fetcher.py 的函数
-            df = fetch_stock_data(symbol, days)
+            # 调用 core/data_fetcher.py 的函数（使用正确的函数名）
+            from datetime import datetime, timedelta
+            
+            end_date = datetime.now().strftime("%Y%m%d")
+            start_date = (datetime.now() - timedelta(days=days)).strftime("%Y%m%d")
+            
+            df = fetch_stock_daily(symbol, start_date, end_date, adjust="qfq")
             
             if df is None or df.empty:
                 return {
@@ -195,8 +200,13 @@ class FinancialDataFetchSkill(BaseSkill):
             }
         
         try:
-            # 调用 core/data_fetcher.py 的函数
-            df = fetch_etf_data(symbol, days)
+            # 调用 core/data_fetcher.py 的函数（使用正确的函数名）
+            from datetime import datetime, timedelta
+            
+            end_date = datetime.now().strftime("%Y%m%d")
+            start_date = (datetime.now() - timedelta(days=days)).strftime("%Y%m%d")
+            
+            df = fetch_etf_daily(symbol, start_date, end_date, adjust="qfq")
             
             if df is None or df.empty:
                 return {
